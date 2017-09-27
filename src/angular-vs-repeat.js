@@ -211,7 +211,7 @@
                     }
                 }
 
-                repeatContainer.empty();
+                repeatContainerChildren.not('.vs-repeat-ignore').remove();
                 return {
                     pre: function($scope, $element, $attrs) {
                         var repeatContainer = angular.isDefined($attrs.vsRepeatContainer) ? angular.element($element[0].querySelector($attrs.vsRepeatContainer)) : $element,
