@@ -146,9 +146,10 @@
             scope: true,
             compile: function($element, $attrs) {
                 var repeatContainer = angular.isDefined($attrs.vsRepeatContainer) ? angular.element($element[0].querySelector($attrs.vsRepeatContainer)) : $element,
-                    ngRepeatChild = repeatContainer.children().eq(0),
+                    repeatContainerChildren = repeatContainer.children(),
+                    ngRepeatChild,
                     ngRepeatExpression,
-                    childCloneHtml = ngRepeatChild[0].outerHTML,
+                    childCloneHtml,
                     expressionMatches,
                     lhs,
                     rhs,
@@ -161,32 +162,40 @@
                         'vsOffsetBefore': 'offsetBefore',
                         'vsOffsetAfter': 'offsetAfter',
                         'vsScrolledToEndOffset': 'scrolledToEndOffset',
-                        'vsScrolledToBeginningOffset': 'scrolledToBeginningOffset',
                         'vsExcess': 'excess'
                     };
 
-                if (ngRepeatChild.attr('ng-repeat')) {
-                    originalNgRepeatAttr = 'ng-repeat';
-                    ngRepeatExpression = ngRepeatChild.attr('ng-repeat');
+                for (var i = 0; i < repeatContainerChildren.length; i++) {
+                    ngRepeatChild = repeatContainerChildren.eq(i);
+
+                    if (ngRepeatChild.attr('ng-repeat')) {
+                        originalNgRepeatAttr = 'ng-repeat';
+                        ngRepeatExpression = ngRepeatChild.attr('ng-repeat');
+                    }
+                    else if (ngRepeatChild.attr('data-ng-repeat')) {
+                        originalNgRepeatAttr = 'data-ng-repeat';
+                        ngRepeatExpression = ngRepeatChild.attr('data-ng-repeat');
+                    }
+                    else if (ngRepeatChild.attr('ng-repeat-start')) {
+                        isNgRepeatStart = true;
+                        originalNgRepeatAttr = 'ng-repeat-start';
+                        ngRepeatExpression = ngRepeatChild.attr('ng-repeat-start');
+                    }
+                    else if (ngRepeatChild.attr('data-ng-repeat-start')) {
+                        isNgRepeatStart = true;
+                        originalNgRepeatAttr = 'data-ng-repeat-start';
+                        ngRepeatExpression = ngRepeatChild.attr('data-ng-repeat-start');
+                    }
+                    if (!!ngRepeatExpression) {
+                        break;
+                    }
                 }
-                else if (ngRepeatChild.attr('data-ng-repeat')) {
-                    originalNgRepeatAttr = 'data-ng-repeat';
-                    ngRepeatExpression = ngRepeatChild.attr('data-ng-repeat');
-                }
-                else if (ngRepeatChild.attr('ng-repeat-start')) {
-                    isNgRepeatStart = true;
-                    originalNgRepeatAttr = 'ng-repeat-start';
-                    ngRepeatExpression = ngRepeatChild.attr('ng-repeat-start');
-                }
-                else if (ngRepeatChild.attr('data-ng-repeat-start')) {
-                    isNgRepeatStart = true;
-                    originalNgRepeatAttr = 'data-ng-repeat-start';
-                    ngRepeatExpression = ngRepeatChild.attr('data-ng-repeat-start');
-                }
-                else {
+
+                if (!ngRepeatExpression) {
                     throw new Error('angular-vs-repeat: no ng-repeat directive on a child element');
                 }
 
+                childCloneHtml = ngRepeatChild[0].outerHTML;
                 expressionMatches = /^\s*(\S+)\s+in\s+([\S\s]+?)(track\s+by\s+\S+)?$/.exec(ngRepeatExpression);
                 lhs = expressionMatches[1];
                 rhs = expressionMatches[2];
